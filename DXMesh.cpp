@@ -4,6 +4,8 @@
 */
 
 #include "DXMesh.h"
+#include <DXTexture.h>
+#include <DXDeviceObject.h>
 //#include "DXMisc.h"
 //#include "DXFilePack.h"
 
@@ -12,11 +14,24 @@
 //							DXMesh
 //========================================================================
 namespace DXLib{
+	struct DXMesh::Impl{
+		HRESULT		ComputeBoundingShere();
+		
+		Mesh		m_pMesh;		//!<	メッシュ
+		unsigned long			m_NumOfMaterials;//!<	マテリアルの数
+
+		Materials		m_pMtrls;		//!<	マテリアルリスト
+		Textures		m_ppTextures;	//!<	テクスチャリスト
+		D3DXVECTOR3		m_vCenter;		//!<	中心座標
+		float			m_fBoundingRadius;//!<	半径
+	};
+
 	/**
 	*@brief	
 	*/
 	DXMesh::DXMesh(){
-		m_NumOfMaterials = 0;
+		__impl__ = std::make_shared<Impl>();
+		__impl__->m_NumOfMaterials = 0;
 	}
 
 	/**
@@ -38,44 +53,44 @@ namespace DXLib{
 		if(FAILED(hr = D3DXLoadMeshFromX(
 			filename.c_str(),		//ファイル名
 			D3DXMESH_SYSTEMMEM,
-			getD3DDevice(),
+			DXDeviceObject::getD3DDevice(),
 			NULL,
 			&lpD3DBuf,
 			NULL,
-			&m_NumOfMaterials,	//マテリアルの数
+			&__impl__->m_NumOfMaterials,	//マテリアルの数
 			&pMesh			//メッシュへのpp
 		))){
 			return hr;
 		}
-		m_pMesh = Mesh(pMesh, SAFE_RELEASE<RawMesh>);
+		__impl__->m_pMesh = Mesh(pMesh, SAFE_RELEASE<RawMesh>);
 		auto lpD3DBuf_shared = std::shared_ptr<ID3DXBuffer>(lpD3DBuf, SAFE_RELEASE<ID3DXBuffer>);
 
 	
 		// テクスチャリストのリソース確保
-		auto ppTextures = new Texture[m_NumOfMaterials];
+		auto ppTextures = new Texture[__impl__->m_NumOfMaterials];
 		if(ppTextures == nullptr){
 			return E_OUTOFMEMORY;
 		}
-		m_ppTextures = Textures(ppTextures, std::default_delete<Texture[]>());
+		__impl__->m_ppTextures = Textures(ppTextures, std::default_delete<Texture[]>());
 	
 		// マテリアルリストのリソース確保
-		auto pMtrls = new Material[m_NumOfMaterials];
+		auto pMtrls = new Material[__impl__->m_NumOfMaterials];
 		if(pMtrls == nullptr){
 			return E_OUTOFMEMORY;
 		}
-		m_pMtrls = Materials(pMtrls, std::default_delete<Material[]>());
+		__impl__->m_pMtrls = Materials(pMtrls, std::default_delete<Material[]>());
 	
 		// テクスチャ・マテリアルのロード
 		D3DXMATERIAL *d3dxMatrs = (D3DXMATERIAL *)lpD3DBuf->GetBufferPointer();
-		for(unsigned long u = 0; u < m_NumOfMaterials; ++u){
+		for(unsigned long u = 0; u < __impl__->m_NumOfMaterials; ++u){
 			// マテリアルのコピー
-			m_pMtrls.get()[u] = d3dxMatrs[u].MatD3D;
+			__impl__->m_pMtrls.get()[u] = d3dxMatrs[u].MatD3D;
 		
 			// テクスチャのロード
-			m_ppTextures.get()[u] = DXLib::TextureLoad(d3dxMatrs[u].pTextureFilename);
+			__impl__->m_ppTextures.get()[u] = DXLib::TextureLoad(d3dxMatrs[u].pTextureFilename);
 		}
 
-		if(FAILED(ComputeBoundingShere())){
+		if(FAILED(__impl__->ComputeBoundingShere())){
 			return E_FAIL;
 		}
 
@@ -86,7 +101,7 @@ namespace DXLib{
 	*@brief	当たり判定用の円の半径を計算
 	*@return
 	*/
-	HRESULT DXMesh::ComputeBoundingShere(){
+	HRESULT DXMesh::Impl::ComputeBoundingShere(){
 		IDirect3DVertexBuffer9 * pVB;
 		void * pVerteces = nullptr;
 
@@ -123,7 +138,7 @@ namespace DXLib{
 	*@param	matWorld	ワールド行列
 	*/
 	void DXMesh::draw(D3DXMATRIX & matWorld){
-		getD3DDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+		DXDeviceObject::getD3DDevice()->SetTransform(D3DTS_WORLD, &matWorld);
 		draw();
 	}
 
@@ -131,11 +146,11 @@ namespace DXLib{
 	*@brief	メッシュの描画.ワールド座標を指定しない
 	*/
 	void DXMesh::draw(){
-		for(unsigned long u = 0; u < m_NumOfMaterials; ++u){
-			getD3DDevice()->SetMaterial(&m_pMtrls.get()[u]);
-			getD3DDevice()->SetTexture(0, m_ppTextures.get()[u].get());
+		for(unsigned long u = 0; u < __impl__->m_NumOfMaterials; ++u){
+			DXDeviceObject::getD3DDevice()->SetMaterial(&__impl__->m_pMtrls.get()[u]);
+			DXDeviceObject::getD3DDevice()->SetTexture(0, __impl__->m_ppTextures.get()[u].get());
 
-			m_pMesh->DrawSubset(u);
+			__impl__->m_pMesh->DrawSubset(u);
 		}
 	}
 
@@ -146,15 +161,15 @@ namespace DXLib{
 	*/
 	HRESULT DXMesh::setFVF(DWORD dwFVF){
 		RawMesh * pTempMesh = nullptr;
-		if(FAILED(m_pMesh->CloneMeshFVF(
+		if(FAILED(__impl__->m_pMesh->CloneMeshFVF(
 			D3DXMESH_SYSTEMMEM,
 			dwFVF,
-			getD3DDevice(),
+			DXDeviceObject::getD3DDevice(),
 			&pTempMesh
 		))){
 			return E_FAIL;
 		}
-		m_pMesh = Mesh(pTempMesh, SAFE_RELEASE<RawMesh>);
+		__impl__->m_pMesh = Mesh(pTempMesh, SAFE_RELEASE<RawMesh>);
 
 		return S_OK;
 	}
@@ -166,15 +181,15 @@ namespace DXLib{
 	*/
 	HRESULT DXMesh::SetVertexDecl(D3DVERTEXELEMENT9 *pDecl){
 		RawMesh * pMesh = nullptr;
-		if(FAILED(m_pMesh->CloneMesh(
-			m_pMesh->GetOptions(), 
+		if(FAILED(__impl__->m_pMesh->CloneMesh(
+			__impl__->m_pMesh->GetOptions(), 
 			pDecl, 
-			getD3DDevice(), 
+			DXDeviceObject::getD3DDevice(), 
 			&pMesh
 		))){
 			return E_FAIL;
 		}
-		m_pMesh = Mesh(pMesh, SAFE_RELEASE<RawMesh>);
+		__impl__->m_pMesh = Mesh(pMesh, SAFE_RELEASE<RawMesh>);
 
 		return S_OK;
 	}
