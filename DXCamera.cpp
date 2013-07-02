@@ -5,7 +5,8 @@
 */
 #include "DXCamera.h"
 #include <DXDeviceObject.h>
-#include <Shape.hpp>
+#include <DXPrimitive.h>
+#include <DXRenderingEngineStorage.h>
 
 //========================================================================
 //								file scope
@@ -140,8 +141,9 @@ namespace{
 			param->farPlane
 		);
 
-		device->SetTransform(D3DTS_VIEW, &mat->matView);
-		device->SetTransform(D3DTS_PROJECTION, &mat->matProj);
+		//device->SetTransform(D3DTS_VIEW, &mat->matView);
+		//device->SetTransform(D3DTS_PROJECTION, &mat->matProj);
+		GetSingleton<DXRenderingEngineStorage>()->SetViewProjection(mat->matView, mat->matProj);
 	}
 }};
 
@@ -170,10 +172,24 @@ namespace DXLib{
 
 	/**
 	*@brief	カメラの設定
-	*@return	
+	*@return
 	*/
 	void DXCamera::transform(){
 		DXLib::transform(&__impl__->m_Mat, &__impl__->m_Param, DXDeviceObject::getD3DDevice());
+	}
+
+	
+	void DXCamera::setPosition(float x, float y, float z){
+		__impl__->m_Param.position = D3DXVECTOR3(x,y,z);
+	}
+	void DXCamera::setLookAt(float x, float y, float z){
+		__impl__->m_Param.lookAt = D3DXVECTOR3(x,y,z);
+	}
+	void DXCamera::setTilt(float x, float y, float z){
+		__impl__->m_Param.tilt = D3DXVECTOR3(x,y,z);
+	}
+	void DXCamera::setFieldOfView(float fieldOfView){
+		__impl__->m_Param.fieldOfView = fieldOfView;
 	}
 };
 
@@ -184,15 +200,15 @@ namespace DXLib{
 
 namespace DXLib{
 	struct DXEditCamera::Impl{
-		void		MoveCursor(TUL::Point<float> &pt);
+		void		MoveCursor(D3DXVECTOR2 &pt);
 		void		MoveMouseWheel(long zDelta);
 
 
 		bool		m_RButtonPressed;		//!<	右クリックされているかどうか
 		bool		m_LButtonPressed;		//!<	左クリックされているかどうか
-		TUL::Point<float,2>	m_RClickPoint;			//!<	右クリックの位置
-		TUL::Point<float,2>	m_LClickPoint;			//!<	左クリックの位置
-		TUL::Point<float,2>	m_CursorPositon;		//!<	カーソルの位置
+		D3DXVECTOR2	m_RClickPoint;			//!<	右クリックの位置
+		D3DXVECTOR2	m_LClickPoint;			//!<	左クリックの位置
+		D3DXVECTOR2	m_CursorPositon;		//!<	カーソルの位置
 
 		float		m_Theta;
 		float		m_Phi;
@@ -222,14 +238,14 @@ namespace DXLib{
 	*/
 	BOOL CALLBACK DXEditCamera::EditCameraProc(HWND hWnd, UINT msg, WPARAM w, LPARAM l){
 		long zDelta;
-		TUL::Point<float, 2> pt;
+		D3DXVECTOR2 pt;
 		switch(msg){
 		case WM_MOUSEMOVE:
-			pt['x'] = LOWORD(l);
-			pt['y'] = HIWORD(l);
+			pt.x = LOWORD(l);
+			pt.y = HIWORD(l);
 			__impl__->MoveCursor(pt);
-			__impl__->m_CursorPositon['x'] = pt['x'];
-			__impl__->m_CursorPositon['y'] = pt['y'];
+			__impl__->m_CursorPositon.x = pt.x;
+			__impl__->m_CursorPositon.y = pt.y;
 			break;
 		case WM_MOUSEWHEEL:
 			zDelta = GET_WHEEL_DELTA_WPARAM(w);
@@ -293,11 +309,11 @@ namespace DXLib{
 	*@return	
 	*@param	pt	位置
 	*/
-	void DXEditCamera::Impl::MoveCursor(TUL::Point<float> &pt){
+	void DXEditCamera::Impl::MoveCursor(D3DXVECTOR2 &pt){
 		//カーソルの位置の差
-		TUL::Vector<float, 2> ptDiff;
-		ptDiff['x'] = pt['x'] - m_CursorPositon['x'];
-		ptDiff['y'] = pt['y'] - m_CursorPositon['y'];
+		D3DXVECTOR2 ptDiff;
+		ptDiff.x = pt.x - m_CursorPositon.x;
+		ptDiff.y = pt.y - m_CursorPositon.y;
 
 		if(m_LButtonPressed){
 			//左クリックされている.平行移動する
@@ -312,8 +328,8 @@ namespace DXLib{
 			vCrossDirectionAndTilt *= 0.03f;
 
 			//ｘ成分
-			m_Param.position += vCrossDirectionAndTilt * (float)ptDiff['x'];
-			m_Param.lookAt += vCrossDirectionAndTilt * (float)ptDiff['x'];
+			m_Param.position += vCrossDirectionAndTilt * (float)ptDiff.x;
+			m_Param.lookAt += vCrossDirectionAndTilt * (float)ptDiff.x;
 
 			//y成分
 			D3DXVECTOR3 vCrossDirectionAndCross;
@@ -323,8 +339,8 @@ namespace DXLib{
 
 			vCrossDirectionAndCross *= -0.03f;
 
-			m_Param.position += vCrossDirectionAndCross * (float)ptDiff['y'];
-			m_Param.lookAt += vCrossDirectionAndCross * (float)ptDiff['y'];
+			m_Param.position += vCrossDirectionAndCross * (float)ptDiff.y;
+			m_Param.lookAt += vCrossDirectionAndCross * (float)ptDiff.y;
 
 		}else if(m_RButtonPressed){
 			//右クリックされている
@@ -332,8 +348,8 @@ namespace DXLib{
 			//回転させる
 			const D3DXVECTOR3 vPolarLookAt = m_Param.position - m_Param.lookAt;
 
-			m_Theta += ptDiff['x'] / 100.0f;
-			m_Phi += ptDiff['y'] / 100.0f;
+			m_Theta += ptDiff.x / 100.0f;
+			m_Phi += ptDiff.y / 100.0f;
 			
 			if(m_Phi > D3DXToRadian(90.0f)){
 				m_Phi = D3DXToRadian(89.0f);
@@ -357,3 +373,4 @@ namespace DXLib{
 	}
 
 };
+

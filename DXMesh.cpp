@@ -6,6 +6,7 @@
 #include "DXMesh.h"
 #include <DXTexture.h>
 #include <DXDeviceObject.h>
+#include <Singleton.hpp>
 //#include "DXMisc.h"
 //#include "DXFilePack.h"
 
@@ -24,6 +25,7 @@ namespace DXLib{
 		Textures		m_ppTextures;	//!<	テクスチャリスト
 		D3DXVECTOR3		m_vCenter;		//!<	中心座標
 		float			m_fBoundingRadius;//!<	半径
+		std::shared_ptr<DXAbsRenderingEngine> m_RenderingEngine;
 	};
 
 	/**
@@ -34,9 +36,6 @@ namespace DXLib{
 		__impl__->m_NumOfMaterials = 0;
 	}
 
-	/**
-	*/
-	DXMesh::~DXMesh(){}
 
 
 	/**
@@ -44,14 +43,14 @@ namespace DXLib{
 	*@return
 	*@param	filename	ファイル名
 	*/
-	HRESULT DXMesh::load(tString filename){
+	HRESULT DXMesh::load(tString meshName, std::shared_ptr<DXAbsRenderingEngine> renderingEngine){
 		HRESULT hr;
 		LPD3DXBUFFER lpD3DBuf;
 	
 		// メッシュのロード
 		RawMesh * pMesh;
 		if(FAILED(hr = D3DXLoadMeshFromX(
-			filename.c_str(),		//ファイル名
+			meshName.c_str(),		//ファイル名
 			D3DXMESH_SYSTEMMEM,
 			DXDeviceObject::getD3DDevice(),
 			NULL,
@@ -93,6 +92,7 @@ namespace DXLib{
 		if(FAILED(__impl__->ComputeBoundingShere())){
 			return E_FAIL;
 		}
+		__impl__->m_RenderingEngine = renderingEngine;
 
 		return S_OK;
 	}
@@ -138,7 +138,9 @@ namespace DXLib{
 	*@param	matWorld	ワールド行列
 	*/
 	void DXMesh::draw(D3DXMATRIX & matWorld){
-		DXDeviceObject::getD3DDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+		auto renderingEngine = __impl__->m_RenderingEngine ? __impl__->m_RenderingEngine  : DXDeviceObject::getRenderingEngine() ;
+		//DXDeviceObject::getD3DDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+		renderingEngine->SetMatrix(matWorld);
 		draw();
 	}
 
@@ -146,12 +148,15 @@ namespace DXLib{
 	*@brief	メッシュの描画.ワールド座標を指定しない
 	*/
 	void DXMesh::draw(){
+		auto renderingEngine = __impl__->m_RenderingEngine ? __impl__->m_RenderingEngine  : DXDeviceObject::getRenderingEngine() ;
+		renderingEngine->BeginPass(0);
 		for(unsigned long u = 0; u < __impl__->m_NumOfMaterials; ++u){
 			DXDeviceObject::getD3DDevice()->SetMaterial(&__impl__->m_pMtrls.get()[u]);
 			DXDeviceObject::getD3DDevice()->SetTexture(0, __impl__->m_ppTextures.get()[u].get());
 
 			__impl__->m_pMesh->DrawSubset(u);
 		}
+		renderingEngine->EndPass();
 	}
 
 	/**

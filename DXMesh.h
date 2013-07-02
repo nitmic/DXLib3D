@@ -6,6 +6,7 @@
 #include <memory>
 #include <DXPrimitive.h>
 #include <tString.h>
+#include <DXDeviceObject.h>
 
 //class DXFilePack;
 /**
@@ -13,6 +14,8 @@
 *@brief	ÉÅÉbÉVÉÖ
 */
 namespace DXLib{
+	class DXAbsRenderingEngine;
+
 	typedef ID3DXMesh RawMesh;
 	typedef std::shared_ptr<RawMesh> Mesh;
 	typedef D3DMATERIAL9 Material;
@@ -20,18 +23,17 @@ namespace DXLib{
 
 	class DXMesh{
 	public:
-		HRESULT		load(tString filename);
+		HRESULT		load(tString filename, std::shared_ptr<DXAbsRenderingEngine> renderingEngine=nullptr);
+		DXMesh();
 
 		void		draw(D3DXMATRIX &matWorld);
 		void		draw();
 
 		HRESULT		setFVF(DWORD dwFVF);
 		HRESULT		SetVertexDecl(D3DVERTEXELEMENT9 *pDecl);
-
-		DXMesh();
-		~DXMesh();
 	private:
 		struct Impl;
 		std::shared_ptr<Impl> __impl__;
 	};
+	
 };

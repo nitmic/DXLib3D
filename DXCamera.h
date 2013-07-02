@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <Windows.h>
 
+
 /**
 *@class	DXCamera
 *@brief	ƒJƒƒ‰‚ÌŠî’êƒNƒ‰ƒX
@@ -30,10 +31,15 @@ namespace DXLib{
 namespace DXLib{
 	class DXCamera : public DXICamera{
 	public:
-		void		transform();
+		void transform();
+
+		void setPosition(float x, float y, float z);
+		void setLookAt(float x, float y, float z);
+		void setTilt(float x, float y, float z);
+		void setFieldOfView(float fieldOfView);
 
 		DXCamera();
-		virtual ~DXCamera();
+		~DXCamera();
 	private:
 		struct Impl;
 		std::shared_ptr<Impl> __impl__;
