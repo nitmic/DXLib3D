@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\DXEffect">
+      <UniqueIdentifier>{ee1ab22e-aa18-4562-bdc2-153a3cb8ce8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\DXMesh">
+      <UniqueIdentifier>{4d0402d6-0b9c-4230-bb41-fd41fcdcfe77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\DXMesh">
+      <UniqueIdentifier>{29236612-1a4f-4710-8141-27e0ab37c425}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\DXEffect">
+      <UniqueIdentifier>{3a261afd-db44-405f-a41e-fd03fa7c0024}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DXCamera.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="DX3DRendering.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="DXMesh.cpp">
+      <Filter>ソース ファイル\DXMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="DXMeshStorage.cpp">
+      <Filter>ソース ファイル\DXMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="DXLambert.cpp">
+      <Filter>ソース ファイル\DXEffect</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DXCamera.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DXLib3D.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DX3DRendering.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DXLambert.h">
+      <Filter>ヘッダー ファイル\DXEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="DXMesh.h">
+      <Filter>ヘッダー ファイル\DXMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="DXMeshStorage.h">
+      <Filter>ヘッダー ファイル\DXMesh</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
