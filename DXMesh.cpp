@@ -43,7 +43,7 @@ namespace DXLib{
 	*@return
 	*@param	filename	ƒtƒ@ƒCƒ‹–¼
 	*/
-	HRESULT DXMesh::load(tString meshName, std::shared_ptr<DXAbsRenderingEngine> renderingEngine){
+	HRESULT DXMesh::load(TUL::tString meshName, std::shared_ptr<DXAbsRenderingEngine> renderingEngine){
 		HRESULT hr;
 		LPD3DXBUFFER lpD3DBuf;
 	

@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 #include <DXPrimitive.h>
-#include <tString.h>
+#include <tString.hpp>
 #include <DXDeviceObject.h>
 
 //class DXFilePack;
@@ -23,7 +23,7 @@ namespace DXLib{
 
 	class DXMesh{
 	public:
-		HRESULT		load(tString filename, std::shared_ptr<DXAbsRenderingEngine> renderingEngine=nullptr);
+		HRESULT		load(TUL::tString filename, std::shared_ptr<DXAbsRenderingEngine> renderingEngine=nullptr);
 		DXMesh();
 
 		void		draw(D3DXMATRIX &matWorld);

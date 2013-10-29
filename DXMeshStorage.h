@@ -1,6 +1,6 @@
 #pragma once
 #include <Singleton.hpp>
-#include <tString.h>
+#include <tString.hpp>
 #include <map>
 
 namespace DXLib{
@@ -8,8 +8,8 @@ namespace DXLib{
 	class DXMeshStorage : public Singleton<DXMeshStorage>{
 		friend Singleton<DXMeshStorage>;
 	public:
-		std::shared_ptr<DXMesh> find(tString name);
+		std::shared_ptr<DXMesh> find(TUL::tString name);
 	private:
-		std::map<tString, std::shared_ptr<DXMesh>> m_Meshs;
+		std::map<TUL::tString, std::shared_ptr<DXMesh>> m_Meshs;
 	};
 };
